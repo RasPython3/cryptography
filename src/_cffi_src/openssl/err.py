@@ -45,4 +45,7 @@ int ERR_GET_REASON(unsigned long);
 """
 
 CUSTOMIZATIONS = """
+#if OPENSSL_FEW_ERR
+#define ERR_GET_FUNC ERR_GET_REASON
+#endif
 """

@@ -1,6 +1,8 @@
 #ifndef OPENSSL_NO_ENGINE
 /* OpenSSL has ENGINE support so include all of this. */
-#ifdef _WIN32
+#if defined(_WIN32_WCE)
+  #include <wincrypt.h>
+#elif defined(_WIN32)
   #include <Wincrypt.h>
 #else
   #include <fcntl.h>

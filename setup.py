@@ -9,6 +9,10 @@ import platform
 import sys
 
 from setuptools import find_packages, setup
+from setuptools.command.build_ext import build_ext
+
+if os.environ.get("BUILDFORWINCE", "1"):
+    sys.platform = "wince"
 
 try:
     from setuptools_rust import RustExtension
@@ -33,6 +37,27 @@ src_dir = os.path.join(base_dir, "src")
 # When executing the setup.py, we need to be able to import ourselves, this
 # means that we need to add the src/ directory to the sys.path.
 sys.path.insert(0, src_dir)
+
+
+class wince_build_ext(build_ext):
+    def build_extensions(self):
+        self.plat_name = "wince-arm"
+        cflags = "-march=armv5tej -mcpu=arm926ej-s -Wno-attributes -DWC_NO_BEST_FIT_CHARS -D_WIN32_WCE=0x0600 -D_MAX_PATH=260 -D_UNICODE -DUNICODE -DOPENSSL_NO_ENGINE -DOPENSSL_NO_FIPS=1 -DOPENSSL_FEW_ERR=1 -fvisibility=hidden -fno-pic"
+        self.compiler.set_executable("compiler_so", f"/opt/cegcc/bin/arm-mingw32ce-gcc {cflags}")
+        self.compiler.set_executable("compiler_cxx", f"/opt/cegcc/bin/arm-mingw32ce-gcc {cflags}")
+        self.compiler.set_executable("linker_so", f"/opt/cegcc/bin/arm-mingw32ce-gcc -shared /home/raspython3/cpython-wince/python310.dll -lssl -lcrypto --enable-auto-import {cflags}")
+        self.compiler.include_dirs = [
+            "/home/raspython3/cpython-wince/Include",
+            "/home/raspython3/cpython-wince",
+            "/home/raspython3/cryptography/openssl/include"
+        ]
+        self.compiler.library_dirs = [
+            "/home/raspython3/cpython-wince",
+            "/home/raspython3/cryptography/openssl/lib"
+        ]
+        self.compiler.shared_lib_extension = ".cp310-wince_arm.pyd"
+        print(self.compiler.__dict__)
+        build_ext.build_extensions(self)
 
 about = {}
 with open(os.path.join(src_dir, "cryptography", "__about__.py")) as f:
@@ -150,6 +175,9 @@ try:
             "src/_cffi_src/build_padding.py:ffi",
         ],
         rust_extensions=rust_extensions,
+        cmdclass={
+            "build_ext": wince_build_ext,
+        },
     )
 except:  # noqa: E722
     # Note: This is a bare exception that re-raises so that we don't interfere

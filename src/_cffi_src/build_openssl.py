@@ -30,6 +30,13 @@ def _get_openssl_libraries(platform):
             "user32",
             "ws2_32",
         ]
+    elif platform == "wince":
+        return [
+            "ssl",
+            "crypto",
+            "crypt32",
+            "ws2"
+        ]
     else:
         # darwin, linux, mingw all use this path
         # In some circumstances, the order in which these libs are

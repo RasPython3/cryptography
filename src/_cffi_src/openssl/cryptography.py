@@ -25,7 +25,11 @@ INCLUDES = """
 #if !CRYPTOGRAPHY_IS_LIBRESSL
 #include <openssl/e_os2.h>
 #endif
-#if defined(_WIN32)
+#if defined(_WIN32_WCE)
+#include <windows.h>
+#include <wincrypt.h>
+#include <winsock2.h>
+#elif defined(_WIN32)
 #define WIN32_LEAN_AND_MEAN
 #include <windows.h>
 #include <Wincrypt.h>
